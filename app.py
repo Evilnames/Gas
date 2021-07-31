@@ -21,8 +21,9 @@ carTypes = [
                 # Gyrocopter mostly a scout thing, getting into combat isn't useful
                 {'type':'Gyrocopter', 'mpg':5, 'maxCrew':1, 'chanceOfDestroy':10, 'breakDownRisk':40, 'breakDownRiskCombat':25, 'maxDaysToFix':45},
             ]
-milesDrivenPerDay = 30
-chanceToGetTanker = 3
+minMilesDrivePerDay  = 10
+maxMilesDrivePerDay = 45
+chanceToGetTanker = 1
 daysToSimulate = 365
 
 carList = []
@@ -30,13 +31,14 @@ carList = []
 # Used for most things in this simulation, testing against a 100% chance
 def percentDieRoll(chance):
     roll = random.randrange(1,100)
-    return chance > roll
+    return chance >= roll
 
 # How much gas is used when we go on a mission
-def gasUsed(activeCars, milesDriven):
+def gasUsed(activeCars, minMiles, maxMiles):
     totalGasUsed = 0
+    milesDrivenToday = random.randrange(minMiles, maxMiles)
     for car in activeCars:
-        totalGasUsed += milesDrivenPerDay / car['mpg']
+        totalGasUsed += milesDrivenToday / car['mpg']
 
     return totalGasUsed
 
@@ -118,21 +120,21 @@ assignRandomCars(carsOwned, carTypes, carList)
 for x in range(daysToSimulate):
     # Find out which cars are going on a mission today
     activeCars = getCarsOnMissionToday(carList, carsToSendOnHunt)
+    if(gasOwned > 0):
+        gasUsedToday = gasUsed(activeCars, minMilesDrivePerDay, maxMilesDrivePerDay)
+        gasOwned -= gasUsedToday
+        gasUsedInGame += gasUsedToday
 
-    gasUsedToday = gasUsed(activeCars, milesDrivenPerDay)
-    gasOwned -= gasUsedToday
-    gasUsedInGame += gasUsedToday
+        didWeFindATankerToday = percentDieRoll(chanceToGetTanker)
+        if(didWeFindATankerToday and len(activeCars) > 0):
+            gasWon = tankerResult(gasPerTanker)
+            gasOwned += gasWon
+            tankersCaptured += 1
+            gasEarnedInGame += gasWon
+            print("Master Blaster!  Tanker Captured! {Amount}".format(Amount=gasWon))
 
-    didWeFindATankerToday = percentDieRoll(chanceToGetTanker)
-    if(didWeFindATankerToday and len(activeCars) > 0):
-        gasWon = tankerResult(gasPerTanker)
-        gasOwned += gasWon
-        tankersCaptured += 1
-        gasEarnedInGame += gasWon
-        print("Master Blaster!  Tanker Captured! {Amount}".format(Amount=gasWon))
-
-    #Update our Cars based on todays events
-    dailyCarResults(carList, didWeFindATankerToday, activeCars)
+        #Update our Cars based on todays events
+        dailyCarResults(carList, didWeFindATankerToday, activeCars)
 
     print("Day {day}".format(day=x))
     printCarStatus(carInventoryStatus(carList))
