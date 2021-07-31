@@ -20,7 +20,7 @@ carTypes = [
             ]
 milesDrivenPerDay = 30
 chanceToGetTanker = 3
-daysToSimulate = 25
+daysToSimulate = 365
 
 carList = []
 
