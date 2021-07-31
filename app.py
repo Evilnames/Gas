@@ -3,6 +3,9 @@ import random, datetime, math
 gasOwned = 1000
 gasEarnedInGame = 0
 gasUsedInGame   = 0
+tankersCaptured = 0
+
+# Various tankers could be moving about the wasteland, a modern max size is 11.5kg
 gasPerTanker = [1000, 2500, 3500, 5500, 6500, 9000, 11500]
 carsOwned = 10
 carsToSendOnHunt = 3
@@ -124,6 +127,7 @@ for x in range(daysToSimulate):
     if(didWeFindATankerToday and len(activeCars) > 0):
         gasWon = tankerResult(gasPerTanker)
         gasOwned += gasWon
+        tankersCaptured += 1
         gasEarnedInGame += gasWon
         print("Master Blaster!  Tanker Captured! {Amount}".format(Amount=gasWon))
 
@@ -138,6 +142,6 @@ for x in range(daysToSimulate):
 print("")
 print("Game Results")
 print("--------------------------")
-print("Ending Gas: {endGame} \t\t Gas Earned: {gasEarned} \t\t Gas Used {gasUsed}".format(endGame=round(gasOwned,2), gasEarned=round(gasEarnedInGame,2), gasUsed=round(gasUsedInGame,2)))
+print("Tankers Captured: {captured} \t\t Ending Gas: {endGame} \t\t Gas Earned: {gasEarned} \t\t Gas Used {gasUsed}".format(captured=tankersCaptured, endGame=round(gasOwned,2), gasEarned=round(gasEarnedInGame,2), gasUsed=round(gasUsedInGame,2)))
 printCarStatus(carInventoryStatus(carList))
 printCarDisplay(carList)
