@@ -4,6 +4,7 @@ gasOwned        = 1000
 gasEarnedInGame = 0
 gasUsedInGame   = 0
 tankersCaptured = 0
+totalBreakdowns = 0
 
 # Various tankers could be moving about the wasteland, a modern max size is 11.5kg
 gasPerTanker = [1000, 2500, 3500, 5500, 6500, 9000, 11500]
@@ -50,7 +51,6 @@ def tankerResult(gasInATanker):
     capturedTanker = random.randrange(1, len(gasInATanker))
     return gasInATanker[capturedTanker]
 
-
 # Get a list of cars going out on missions today
 def getCarsOnMissionToday(cars, carsToSendOnHunt):
     activeCars = list(filter(lambda car: car['status'] == 'Active', cars))
@@ -63,7 +63,7 @@ def getCarsOnMissionToday(cars, carsToSendOnHunt):
         return random.sample(activeCars, k=carsToSendOnHunt)
 
 # Process results for the day for each car
-def dailyCarResults(cars, tankerResult, activeCars):
+def dailyCarResults(cars, tankerResult, activeCars, totalBreakdowns):
     for car in cars:
         #Handle reduction in repair days
         if(car['status'] == 'Damaged'):
@@ -81,6 +81,7 @@ def dailyCarResults(cars, tankerResult, activeCars):
                     wasIDamaged = percentDieRoll(car['breakDownRisk'])
 
                 if(wasIDamaged):
+                    totalBreakdowns = totalBreakdowns + 1
                     car['status'] = 'Damaged'
                     car['repairDays'] = random.randrange(1,car['maxDaysToFix'])
                     amIDead = percentDieRoll(car['chanceOfDestroy'])
@@ -88,6 +89,7 @@ def dailyCarResults(cars, tankerResult, activeCars):
                         car['status'] = 'Destroyed'
                 
                 car['missions'] = car['missions'] + 1
+    return totalBreakdowns
 
 # Some stats for output
 def carInventoryStatus(carList):
@@ -154,7 +156,7 @@ for x in range(daysToSimulate):
             addAdditionalVehicle(carTypes,carList)
 
         #Update our Cars based on todays events
-        dailyCarResults(carList, didWeFindATankerToday, activeCars)
+        totalBreakdowns = dailyCarResults(carList, didWeFindATankerToday, activeCars, totalBreakdowns)
 
     print("Day {day}".format(day=x))
     printCarStatus(carInventoryStatus(carList))
@@ -164,6 +166,6 @@ for x in range(daysToSimulate):
 print("")
 print("Game Results")
 print("--------------------------")
-print("Tankers Captured: {captured} \t\t Ending Gas: {endGame} \t\t Gas Earned: {gasEarned} \t\t Gas Used {gasUsed}".format(captured=tankersCaptured, endGame=round(gasOwned,2), gasEarned=round(gasEarnedInGame,2), gasUsed=round(gasUsedInGame,2)))
+print("Tankers Captured: {captured} \t\t Ending Gas: {endGame} \t\t Gas Earned: {gasEarned} \t\t Gas Used {gasUsed} \t\t Total Breakdowns {totalBreakdowns}".format(captured=tankersCaptured, endGame=round(gasOwned,2), gasEarned=round(gasEarnedInGame,2), gasUsed=round(gasUsedInGame,2), totalBreakdowns=round(totalBreakdowns,2)))
 printCarStatus(carInventoryStatus(carList))
 printCarDisplay(carList)
