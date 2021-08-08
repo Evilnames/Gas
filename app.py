@@ -1,6 +1,6 @@
 import random, datetime, math
 
-gasOwned = 1000
+gasOwned        = 1000
 gasEarnedInGame = 0
 gasUsedInGame   = 0
 tankersCaptured = 0
@@ -9,11 +9,17 @@ tankersCaptured = 0
 gasPerTanker = [1000, 2500, 3500, 5500, 6500, 9000, 11500]
 carsOwned = 10
 carsToSendOnHunt = 3
+chanceOfFindingVehicleOnScout = 1
+minMilesDrivePerDay  = 10
+maxMilesDrivePerDay = 45
+chanceToGetTanker = 1
+daysToSimulate = 365
+
+
 #https://madmax.fandom.com/wiki/Category:Vehicles
 carTypes = [
                 {'type':'Pickup Truck', 'mpg':15, 'maxCrew': 4, 'chanceOfDestroy':5, 'breakDownRisk':10, 'breakDownRiskCombat':20, 'maxDaysToFix':7},
                 {'type':'Buggy', 'mpg':25, 'maxCrew':4, 'chanceOfDestroy':3, 'breakDownRisk':5, 'breakDownRiskCombat':4, 'maxDaysToFix':4},
-                # War Rig
                 {'type':'War Rig', 'mpg':15, 'maxCrew':25, 'chanceOfDestroy':2, 'breakDownRisk':35, 'breakDownRiskCombat':10, 'maxDaysToFix':35},
                 {'type':'Bus', 'mpg':10, 'maxCrew':15, 'chanceOfDestroy':1, 'breakDownRisk':20, 'breakDownRiskCombat':10, 'maxDaysToFix':20},
                 # Based on the Ford Inceterceptor from Original Mad Max
@@ -21,10 +27,7 @@ carTypes = [
                 # Gyrocopter mostly a scout thing, getting into combat isn't useful
                 {'type':'Gyrocopter', 'mpg':5, 'maxCrew':1, 'chanceOfDestroy':10, 'breakDownRisk':40, 'breakDownRiskCombat':25, 'maxDaysToFix':45},
             ]
-minMilesDrivePerDay  = 10
-maxMilesDrivePerDay = 45
-chanceToGetTanker = 1
-daysToSimulate = 365
+
 
 carList = []
 
@@ -106,12 +109,20 @@ def printCarDisplay(carList):
     for car in carList:
         print("{id} \t\t {status} \t\t {missions} \t\t {carType}".format(id=car['carId'], status=car['status'], missions=car['missions'], carType = car['type']))
 
+def newVehicle(carId, startStatus, startRepairDays, carType):
+    return {'carId':carId, 'status':startStatus, 'missions':0, 'repairDays' : startRepairDays, 'type':carType['type'], 'mpg':carType['mpg'], 'maxCrew':carType['maxCrew'], 'chanceOfDestroy':carType['chanceOfDestroy'], 'breakDownRisk':carType['breakDownRisk'], 'breakDownRiskCombat':carType['breakDownRiskCombat'], 'maxDaysToFix':carType['maxDaysToFix']}
+
 def assignRandomCars(carsOwned, carTypes, carList):
     for x in range(carsOwned):
         #Get a random car
         carType = random.choice(carTypes)
+        carList.append(newVehicle(x+1, 'Active', 0, carType))
 
-        carList.append({'carId':x + 1, 'status':'Active', 'missions':0, 'repairDays' : 0, 'type':carType['type'], 'mpg':carType['mpg'], 'maxCrew':carType['maxCrew'], 'chanceOfDestroy':carType['chanceOfDestroy'], 'breakDownRisk':carType['breakDownRisk'], 'breakDownRiskCombat':carType['breakDownRiskCombat'], 'maxDaysToFix':carType['maxDaysToFix']})
+def addAdditionalVehicle(carTypes,carList):
+    carType = random.choice(carTypes)
+    newCarId = len(carList) + 1
+    carList.append(newVehicle(newCarId, 'Damaged', 3, carType))
+
 
 # Generate a list of our cars
 assignRandomCars(carsOwned, carTypes, carList)
@@ -120,18 +131,27 @@ assignRandomCars(carsOwned, carTypes, carList)
 for x in range(daysToSimulate):
     # Find out which cars are going on a mission today
     activeCars = getCarsOnMissionToday(carList, carsToSendOnHunt)
+
+    # If you run out of gas you effectively lose the game
     if(gasOwned > 0):
         gasUsedToday = gasUsed(activeCars, minMilesDrivePerDay, maxMilesDrivePerDay)
         gasOwned -= gasUsedToday
         gasUsedInGame += gasUsedToday
 
         didWeFindATankerToday = percentDieRoll(chanceToGetTanker)
+        didWeFindANewVehicleToday = percentDieRoll(chanceOfFindingVehicleOnScout)
+
+        # We found a tanker, kick off winning a tanker.
         if(didWeFindATankerToday and len(activeCars) > 0):
             gasWon = tankerResult(gasPerTanker)
             gasOwned += gasWon
             tankersCaptured += 1
             gasEarnedInGame += gasWon
             print("Master Blaster!  Tanker Captured! {Amount}".format(Amount=gasWon))
+
+        # Add a random car to our "Inventory"
+        if(didWeFindANewVehicleToday and len(activeCars) > 0):
+            addAdditionalVehicle(carTypes,carList)
 
         #Update our Cars based on todays events
         dailyCarResults(carList, didWeFindATankerToday, activeCars)
