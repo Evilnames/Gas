@@ -1,10 +1,12 @@
 import random, datetime, math
 
+# Internal game counters
 gasOwned        = 1000
 gasEarnedInGame = 0
 gasUsedInGame   = 0
 tankersCaptured = 0
 totalBreakdowns = 0
+carList = []
 
 # Various tankers could be moving about the wasteland, a modern max size is 11.5kg
 gasPerTanker = [1000, 2500, 3500, 5500, 6500, 9000, 11500]
@@ -14,11 +16,17 @@ carsOwned = 10
 minCarsToSendOnHunt = 2
 maxCarsToSendOnHunt = 5
 
-
-chanceOfFindingVehicleOnScout = 1
+# How many miles do we want to drive per day to find a tanker.
 minMilesDrivePerDay  = 10
 maxMilesDrivePerDay = 45
+
+
+# How often do we expect to find a disabled or damaged vehicle that we can tow back to base.
+chanceOfFindingVehicleOnScout = 1
+
+# Chance of finding a tank while out on hunt
 chanceToGetTanker = 1
+
 daysToSimulate = 365
 
 
@@ -35,7 +43,7 @@ carTypes = [
             ]
 
 
-carList = []
+
 
 # Used for most things in this simulation, testing against a 100% chance
 def percentDieRoll(chance):
