@@ -9,7 +9,12 @@ totalBreakdowns = 0
 # Various tankers could be moving about the wasteland, a modern max size is 11.5kg
 gasPerTanker = [1000, 2500, 3500, 5500, 6500, 9000, 11500]
 carsOwned = 10
-carsToSendOnHunt = 3
+
+# Range of how many cars go out to scout each day
+minCarsToSendOnHunt = 2
+maxCarsToSendOnHunt = 5
+
+
 chanceOfFindingVehicleOnScout = 1
 minMilesDrivePerDay  = 10
 maxMilesDrivePerDay = 45
@@ -19,14 +24,14 @@ daysToSimulate = 365
 
 #https://madmax.fandom.com/wiki/Category:Vehicles
 carTypes = [
-                {'type':'Pickup Truck', 'mpg':15, 'maxCrew': 4, 'chanceOfDestroy':5, 'breakDownRisk':10, 'breakDownRiskCombat':20, 'maxDaysToFix':7},
-                {'type':'Buggy', 'mpg':25, 'maxCrew':4, 'chanceOfDestroy':3, 'breakDownRisk':5, 'breakDownRiskCombat':4, 'maxDaysToFix':4},
-                {'type':'War Rig', 'mpg':15, 'maxCrew':25, 'chanceOfDestroy':2, 'breakDownRisk':35, 'breakDownRiskCombat':10, 'maxDaysToFix':35},
-                {'type':'Bus', 'mpg':10, 'maxCrew':15, 'chanceOfDestroy':1, 'breakDownRisk':20, 'breakDownRiskCombat':10, 'maxDaysToFix':20},
+                {'type':'Pickup Truck', 'mpg':15,   'maxCrew': 4,   'chanceOfDestroy':5,    'breakDownRisk':10, 'breakDownRiskCombat':20,   'maxDaysToFix':7},
+                {'type':'Buggy',        'mpg':25,   'maxCrew':4,    'chanceOfDestroy':3,    'breakDownRisk':5,  'breakDownRiskCombat':4,    'maxDaysToFix':4},
+                {'type':'War Rig',      'mpg':15,   'maxCrew':25,   'chanceOfDestroy':2,    'breakDownRisk':35, 'breakDownRiskCombat':10,   'maxDaysToFix':35},
+                {'type':'Bus',          'mpg':10, 'maxCrew':15,     'chanceOfDestroy':1,    'breakDownRisk':20, 'breakDownRiskCombat':10,   'maxDaysToFix':20},
                 # Based on the Ford Inceterceptor from Original Mad Max
-                {'type':'Interceptor', 'mpg':30, 'maxCrew':2, 'chanceOfDestroy':2, 'breakDownRisk':9, 'breakDownRiskCombat':12, 'maxDaysToFix':3},
+                {'type':'Interceptor',  'mpg':30,   'maxCrew':2,    'chanceOfDestroy':2,    'breakDownRisk':9,  'breakDownRiskCombat':12,   'maxDaysToFix':3},
                 # Gyrocopter mostly a scout thing, getting into combat isn't useful
-                {'type':'Gyrocopter', 'mpg':5, 'maxCrew':1, 'chanceOfDestroy':10, 'breakDownRisk':40, 'breakDownRiskCombat':25, 'maxDaysToFix':45},
+                {'type':'Gyrocopter',   'mpg':5,    'maxCrew':1,    'chanceOfDestroy':10,   'breakDownRisk':40, 'breakDownRiskCombat':25,   'maxDaysToFix':45},
             ]
 
 
@@ -52,7 +57,10 @@ def tankerResult(gasInATanker):
     return gasInATanker[capturedTanker]
 
 # Get a list of cars going out on missions today
-def getCarsOnMissionToday(cars, carsToSendOnHunt):
+def getCarsOnMissionToday(cars, minCarsOnHunt, maxCarsOnHunt):
+    # Figure out how many cars to send
+    carsToSendOnHunt = random.randrange(minCarsOnHunt, maxCarsOnHunt)
+
     activeCars = list(filter(lambda car: car['status'] == 'Active', cars))
     if(carsToSendOnHunt > len(activeCars)):
         carsToSendOnHunt = len(activeCars)
@@ -132,7 +140,7 @@ assignRandomCars(carsOwned, carTypes, carList)
 # Start our Simulation
 for x in range(daysToSimulate):
     # Find out which cars are going on a mission today
-    activeCars = getCarsOnMissionToday(carList, carsToSendOnHunt)
+    activeCars = getCarsOnMissionToday(carList, minCarsToSendOnHunt, maxCarsToSendOnHunt)
 
     # If you run out of gas you effectively lose the game
     if(gasOwned > 0):
@@ -163,6 +171,7 @@ for x in range(daysToSimulate):
     print("Current Gas : {gasOwned} (Gas Used:{gasUsedToday} Cars On Mission:{activeCars})".format(gasOwned=round(gasOwned,2), gasUsedToday= gasUsedToday, activeCars=len(activeCars)))
     print("")
 
+## Return out the result of our simulation
 print("")
 print("Game Results")
 print("--------------------------")
